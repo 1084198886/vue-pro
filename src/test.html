@@ -8,26 +8,45 @@
 </head>
 <body>
 <div id="app">
-    {{ message }}
+    声明式渲染 , message= {{ message }}
 </div>
 
 <div id="app-2">
   <span v-bind:title="message">
-    鼠标悬停几秒钟查看此处动态绑定的提示信息！
+    v-bind绑定DOM元素：鼠标悬停几秒钟查看此处动态绑定的提示信息！
   </span>
+
+    <!--条件与循环-->
+    <p v-if="see">vue条件判断v-if指令</p>
+    <ol>
+        <li v-for="item in todos">
+            {{item.text}}
+        </li>
+    </ol>
+
+    <p>{{rvsmsg}}</p>
+    <button v-on:click="reverseMessage">反转消息</button>
 </div>
 
 <script type="application/javascript">
-    // var app = new Vue({
-    //     el: '#app',
-    //     data: {
-    //         message: '页面加载于:' + new Date().toLocaleString(),
-    //     }
-    // })
     var app = new Vue({
+        el: '#app',
+        data: {
+            message: '123',
+        }
+    });
+    var app2 = new Vue({
         el: '#app-2',
         data: {
             message: '页面加载于:' + new Date().toLocaleString(),
+            rvsmsg: 'Hello Vue.js!',
+            see: true,
+            todos: [{text: 'v-for循环item1'}, {text: 'v-for循环item2'}, {text: 'v-for循环item3'}],
+        },
+        methods: {
+            reverseMessage: function () {
+                this.rvsmsg = this.rvsmsg.split('').reverse().join('');
+            }
         }
     })
 </script>
