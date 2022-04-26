@@ -5,6 +5,9 @@
     <title>Vue测试</title>
 
     <script src="vue.js"></script>
+    <script>
+
+    </script>
 </head>
 <body>
 <div id="app">
@@ -24,11 +27,44 @@
         </li>
     </ol>
 
+    <!--处理用户输入-->
     <p>{{rvsmsg}}</p>
     <button v-on:click="reverseMessage">反转消息</button>
+
+    <!--v-model 指令，它能轻松实现表单输入和应用状态之间的双向绑定-->
+    <br>
+    <p>{{inputmsg}}</p>
+    <input v-model="inputmsg">
+
+    <!--组件化构建应用-->
+    <ol>
+        <def-item v-for="item in groceryList" v-bind:myatr="item" v-bind:key="item.id"></def-item>
+    </ol>
+
+    <!--插值-原始html-->
+    <p>Using mustache: {{rawHtml}}</p>
+    <p> Using v-html :<span v-html="rawHtml"></span></p>
+
+    <span v-bind:id="'list-'+id01"></span>
+
+    <!--动态参数-->
+    <!--    <a v-on:['focus']="btnEvent">动态参数</a>-->
+
+    <!--计算属性-->
+    <p>Original message: "{{ message }}"</p>
+    <p>Use Computed message: "{{ getNowTimeComputed }}"</p>
+    <p>Use Method message: "{{ reverseMessage }}"</p>
+
+    <p> fullName: {{fullName}}</p>
 </div>
 
 <script type="application/javascript">
+    Vue.component('def-item', {
+        // todo-item 组件现在接受一个 "prop"，类似于一个自定义 attribute。这个 prop 名为 todo。
+        props: ['myatr'],
+        template: '<li>{{myatr.text}}</li>',
+    });
+
     var app = new Vue({
         el: '#app',
         data: {
@@ -38,17 +74,68 @@
     var app2 = new Vue({
         el: '#app-2',
         data: {
+            id01: '001',
+            firstName: 'Foo',
+            lastName: 'Bar',
             message: '页面加载于:' + new Date().toLocaleString(),
             rvsmsg: 'Hello Vue.js!',
+            inputmsg: 'v-model指令',
+            rawHtml: '<span style="color: red">原始Html内容</span>',
             see: true,
             todos: [{text: 'v-for循环item1'}, {text: 'v-for循环item2'}, {text: 'v-for循环item3'}],
+            groceryList: [
+                {id: 0, text: '蔬菜'},
+                {id: 1, text: '奶酪'},
+                {id: 2, text: '随便其它什么人吃的东西'}
+            ],
+        },
+        computed: {
+            // 计算属性的 getter
+            fullName: function () {
+                // `this` 指向 vm 实例
+                return this.firstName + ' ' + this.lastName;
+            },
+            getterAndSettter: {
+                /*计算属性的 getter 和  setter*/
+                get: function () {
+                    console.log("计算属性的get方法调用了")
+                    return this.firstName + ' ' + this.lastName;
+                },
+                set: function (newValue) {
+                    console.log("计算属性的set方法调用了")
+                    var names = newValue.split(' ');
+                    this.firstName = names[0];
+                    this.lastName = names[names.length - 1];
+                }
+            },
+            getNowTimeComputed: function () {
+                return new Date().toLocaleString();
+            }
         },
         methods: {
             reverseMessage: function () {
                 this.rvsmsg = this.rvsmsg.split('').reverse().join('');
-            }
+            },
+            btnEvent: function () {
+                console.log("btnEvent");
+            },
+        },
+        created: function () {
+            // `this` 指向 vm 实例
+            console.log('Vue created: message is: ' + this.message);
+        },
+        mounted: function () {
+            console.log('Vue mounted');
+        },
+        updated: function () {
+            console.log('Vue updated');
+        },
+        destroyed: function () {
+            console.log('Vue destroyed');
         }
-    })
+    });
+
+    app2.getterAndSettter="Geng  Qiyun";
 </script>
 </body>
 </html>
