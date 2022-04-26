@@ -1,4 +1,4 @@
-import Vue from 'vue'
+import Vue from 'src/lib/vue'
 import routes from './routes'
 
 const app = new Vue({

@@ -4,10 +4,28 @@
     <meta charset="UTF-8">
     <title>Vue测试</title>
 
-    <script src="vue.js"></script>
+    <script src="lib/vue.js"></script>
+    <!-- 因为 AJAX 库和通用工具的生态已经相当丰富，Vue 核心代码没有重复 -->
+    <!-- 提供这些功能以保持精简。这也可以让你自由选择自己更熟悉的工具。 -->
+    <script src="lib/axios.min.js"></script>
+    <script src="lib/lodash.min.js"></script>
     <script>
 
     </script>
+
+    <style>
+        .active {
+            background-color: green;
+        }
+
+        .text-danger {
+            background-color: red;
+        }
+
+        .static {
+            color: yellow;
+        }
+    </style>
 </head>
 <body>
 <div id="app">
@@ -56,6 +74,22 @@
     <p>Use Method message: "{{ reverseMessage }}"</p>
 
     <p> fullName: {{fullName}}</p>
+
+    <!--watch侦听器-->
+    <p style="vertical-align: center;">
+        Ask a yes/no question:
+        <input v-model="question">
+        <img v-bind:src="imgUrl" style="width: 80px;height: 50px">
+    </p>
+    <p>{{ answer }}</p>
+
+    <!--Class与style绑定-->
+    <p class="static" v-bind:class="classObj">Class与style绑定</p>
+    <p class="static" v-bind:class="[activeClass,errorClass]">Class与style绑定[activeClass,errorClass]</p>
+    <p class="static" v-bind:class="[act?activeClass:'',errorClass]">Class与style绑定-条件判断</p>
+
+    <p v-bind:style="styleObject">绑定内联样式</p>
+    <p v-bind:style="[baseStyles,overridingStyles]">绑定内联样式-数组语法</p>
 </div>
 
 <script type="application/javascript">
@@ -74,8 +108,30 @@
     var app2 = new Vue({
         el: '#app-2',
         data: {
+            question: '',
+            isAct: true,
+            error: null,
+
+            act: false,
+            activeClass: 'active',
+            errorClass: 'text-danger',
+
+            styleObject: {
+                color: 'red',
+                fontSize: '13px',
+                fontWeight: 'bold',
+            },
+            baseStyles: {
+                color: 'red',
+            },
+            overridingStyles: {
+                color: 'green',
+            },
+
+            answer: 'I cannot give you an answer until you ask a question!',
             id01: '001',
             firstName: 'Foo',
+            imgUrl: '',
             lastName: 'Bar',
             message: '页面加载于:' + new Date().toLocaleString(),
             rvsmsg: 'Hello Vue.js!',
@@ -90,6 +146,13 @@
             ],
         },
         computed: {
+            /*class与style绑定*/
+            classObj: function () {
+                return {
+                    'active': this.isAct && !this.error,
+                    'text-danger': this.error && this.error.type === 'fatal',
+                }
+            },
             // 计算属性的 getter
             fullName: function () {
                 // `this` 指向 vm 实例
@@ -119,10 +182,40 @@
             btnEvent: function () {
                 console.log("btnEvent");
             },
+            getAnswer: function () {
+                if (this.question.indexOf('?') === -1) {
+                    this.answer = 'Questions usually contain a question mark. ;-)'
+                    return
+                }
+                this.answer = 'Thinking...'
+                var vm = this
+                axios.get('https://yesno.wtf/api')
+                    .then(function (response) {
+                        vm.answer = _.capitalize(JSON.stringify(response.data))
+                        vm.imgUrl = response.data.image;
+                    })
+                    .catch(function (error) {
+                        vm.answer = 'Error! Could not reach the API. ' + error
+                    })
+            },
         },
         created: function () {
             // `this` 指向 vm 实例
             console.log('Vue created: message is: ' + this.message);
+            // `_.debounce` 是一个通过 Lodash 限制操作频率的函数。
+            // 在这个例子中，我们希望限制访问 yesno.wtf/api 的频率
+            // AJAX 请求直到用户输入完毕才会发出。想要了解更多关于
+            // `_.debounce` 函数 (及其近亲 `_.throttle`) 的知识，
+            // 请参考：https://lodash.com/docs#debounce
+            this.debouncedGetAnswer = _.debounce(this.getAnswer, 500)
+        },
+        watch: {
+            // 如果 `question` 发生改变，这个函数就会运行
+            question: function (newQuestion, oldQuestion) {
+                console.log("newQuestion=" + newQuestion + ",oldQuestion=" + oldQuestion)
+                this.answer = 'Waiting for you to stop typing...'
+                this.debouncedGetAnswer()
+            },
         },
         mounted: function () {
             console.log('Vue mounted');
@@ -135,7 +228,7 @@
         }
     });
 
-    app2.getterAndSettter="Geng  Qiyun";
+    app2.getterAndSettter = "Geng  Qiyun";
 </script>
 </body>
 </html>
