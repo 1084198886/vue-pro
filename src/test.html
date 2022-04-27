@@ -28,6 +28,7 @@
     </style>
 </head>
 <body>
+
 <div id="app">
     声明式渲染 , message= {{ message }}
 </div>
@@ -90,9 +91,97 @@
 
     <p v-bind:style="styleObject">绑定内联样式</p>
     <p v-bind:style="[baseStyles,overridingStyles]">绑定内联样式-数组语法</p>
+
+    <br>
+    <hr>
+    <!--条件渲染-->
+    <template v-if="loginType==='uname'">
+        <label>Username:</label>
+        <input placeholder="Enter your username" key="username-input">
+    </template>
+    <template v-else>
+        <label>Email:</label>
+        <input placeholder="Enter your Email" key="email-input">
+    </template>
+
+    <!--替换数组-->
+    <ul>
+        <li v-for="num in evenNumbers">替换数组item: {{num}}</li>
+    </ul>
+
+    <!--    <ul v-for="set of sets">-->
+    <!--        <li v-for="num of evenNumbersWithArg(set)">替换数组item: {{num}}</li>-->
+    <!--    </ul>-->
+
+    <!--在 v-for 里使用值范围-->
+    <span v-for="n in 10">{{ n }} </span>
+
+    <ul>
+        <!--在 <template> 上使用 v-for-->
+        <template v-for="num in evenNumbers">
+            <li>{{num}}</li>
+        </template>
+    </ul>
+
+    <!--表单输入绑定-->
+    <!--文本-->
+    <input v-model="formtext" placeholder="edit me">
+    <p>Message is: {{formtext}}</p>
+    <!--多行文本-->
+    <span>Multiline message is:</span>
+    <p style="white-space: pre-line;">{{ formtextarea }}</p>
+    <textarea v-model="formtextarea" placeholder="add multiple lines"></textarea>
+
+    <br>
+    <!--复选框-->
+    <input type="checkbox" id="jack" value="Jack" v-model="formCheckedNames">
+    <label for="jack">Jack</label>
+    <input type="checkbox" id="john" value="John" v-model="formCheckedNames">
+    <label for="john">John</label>
+    <input type="checkbox" id="mike" value="Mike" v-model="formCheckedNames">
+    <label for="mike">Mike</label>
+    <br>
+    <span>Checked names: {{ formCheckedNames }}</span>
+    <br>
+    <br>
+    <!--单选按钮  formradio存储的是  选中-->
+    <input type="radio" id="formradio" value="One" v-model="formradio">
+    <label for="formradio">One</label>
+    <input type="radio" id="two" value="Two" v-model="formradio">
+    <label for="two">Two</label>
+    <br>
+    <span>Picked: {{ formradio }}</span>
+
+    <br>
+    <br>
+
+    <!--选择框-->
+    <!--单选-->
+    <select v-model="vselect">
+        <option value="">请选择</option>
+        <option>A</option>
+        <option>B</option>
+        <option>C</option>
+    </select>
+    <span>Selected: {{ vselect }}</span>
+    <br>
+    <br>
+
+    <!--多选-->
+    <select v-model="vmultiselect" multiple style="width: 50px">
+        <option>A</option>
+        <option>B</option>
+        <option>C</option>
+    </select>
+    <br>
+    <span>Selected: {{ vmultiselect }}</span>
+    <br>
+    <br>
+
 </div>
 
 <script type="application/javascript">
+
     Vue.component('def-item', {
         // todo-item 组件现在接受一个 "prop"，类似于一个自定义 attribute。这个 prop 名为 todo。
         props: ['myatr'],
@@ -109,11 +198,24 @@
         el: '#app-2',
         data: {
             question: '',
+            loginType: 'uname',
+            formtext: '',
+            formtextarea: '',
             isAct: true,
+            formradio: '',
+            vselect: '',
+            vmultiselect: [],
+            selectoptions: [
+                { text: 'One', value: 'A' },
+                { text: 'Two', value: 'B' },
+                { text: 'Three', value: 'C' }
+            ],
+            formCheckedNames: [],
             error: null,
-
             act: false,
             activeClass: 'active',
+            numbers: [1, 2, 3, 4, 5],
+            sets: [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]],
             errorClass: 'text-danger',
 
             styleObject: {
@@ -153,6 +255,19 @@
                     'text-danger': this.error && this.error.type === 'fatal',
                 }
             },
+            evenNumbers: function () {
+                // filter实现过滤
+                return this.numbers.filter(function (number) {
+                    return number % 2 === 0;
+                });
+            },
+            evenNumbersWithArg: function (numbers) {
+                // filter实现过滤
+                return numbers.filter(function (number) {
+                    return number % 2 === 0;
+                });
+            },
+
             // 计算属性的 getter
             fullName: function () {
                 // `this` 指向 vm 实例
