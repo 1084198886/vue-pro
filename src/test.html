@@ -25,6 +25,30 @@
         .static {
             color: yellow;
         }
+
+        .tab-button {
+            padding: 6px 10px;
+            border-top-left-radius: 3px;
+            border-top-right-radius: 3px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            background: #f0f0f0;
+            margin-bottom: -1px;
+            margin-right: -1px;
+        }
+
+        .tab-button:hover {
+            background: #e0e0e0;
+        }
+
+        .tab-button.active {
+            background: green;
+        }
+
+        .tab {
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
@@ -177,15 +201,207 @@
     <span>Selected: {{ vmultiselect }}</span>
     <br>
     <br>
+    <!--v-for 渲染的动态选项-->
+    <select v-model="vselect">
+        <option v-for="option in selectoptions" v-bind:value="option.value">{{option.text}}</option>
+    </select>
+    <span>Selected: {{ vselect }}</span>
+    <br>
+    <br>
 
+    <!--修饰符  -->
+    <!-- .lazy 当input输入完毕且失去焦点时 才会更新value-->
+    <input v-model.lazy="vlazy" placeholder="lazy测试">
+    <label>{{vlazy}}</label>
+    <br>
+    <br>
+    <!-- .trim()-->
+    <input v-model.trim="vtrim" placeholder="vtrim测试">
+    <label style="background-color: red;color: white">{{vtrim}}</label>
+    <br>
+    <br>
+    <!--组件基础-->
+    <button-counter></button-counter>
+    <br>
+    <br>
+    <!--通过 Prop 向子组件传递数据-->
+    <blog-post title="张三"></blog-post>
+    <br>
+    <!--使用 v-for 循环创建-->
+    <blog-post v-for="item in postsdata" v-bind:key="item.id" v-bind:title="item.title"></blog-post>
+    <br>
+    <br>
+
+    <!-- 监听子组件事件    $emit传递 自定义事件 enlarge-text  给父组件-->
+    <div :style="{ fontSize: postFontSize + 'em' }">
+        <blog-post2
+                v-for="post in postsdata"
+                v-bind:key="post.id"
+                v-on:enlarge-text="onEnlargeText"
+                v-bind:post="post"
+        ></blog-post2>
+    </div>
+    <br>
+    <br>
+    <!--通过插槽 slot 分发内容-->
+    <alert-box>
+        Something bad happened.
+    </alert-box>
+
+    <!--动态组件  v-bind:is命令-->
+    <div id="dynamic-component-demo" class="demo">
+        <button
+                v-for="tab in tabs"
+                v-bind:key="tab"
+                v-bind:class="['tab-button', { active: currentTab === tab }]"
+                v-on:click="currentTab = tab">
+            {{ tab }}
+        </button>
+
+        <!-- 失活的组件将会被缓存！-->
+        <keep-alive>
+            <component v-bind:is="currentTabComponent" class="tab"></component>
+        </keep-alive>
+    </div>
 </div>
 
 <script type="application/javascript">
+    function Person(firstName, lastName) {
+        this.firstName = firstName
+        this.lastName = lastName
+    }
+
+    /*Prop 验证*/
+    Vue.component('my-component', {
+        propG: Function,  // 函数类型
+        propH: Person,  // 自定义函数类型
+        // 基础的类型检查 (`null` 和 `undefined` 会通过任何类型验证)
+        propA: Number,
+        // 多个可能的类型
+        propB: [String, Number],
+        // 必填的字符串
+        propC: {
+            type: String,
+            required: true
+        },
+        // 带有默认值的数字
+        propD: {
+            type: Number,
+            default: 100
+        },
+        // 带有默认值的对象
+        propE: {
+            type: Object,
+            default: function () {
+                return {defmsg: 'Hellno'};
+            }
+        },
+        // 自定义验证函数
+        propF: {
+            validator: function (value) {
+                // 这个值必须匹配下列字符串中的一个
+                return ['success', 'warning', 'danger'].indexOf(value) !== -1;
+            }
+        },
+    });
 
     Vue.component('def-item', {
         // todo-item 组件现在接受一个 "prop"，类似于一个自定义 attribute。这个 prop 名为 todo。
         props: ['myatr'],
         template: '<li>{{myatr.text}}</li>',
+    });
+
+    Vue.component('button-counter', {
+        data: function () {
+            return {
+                count: 0,
+            };
+        },
+        template: '<button v-on:click="count++">You click me {{count}} times!</button>',
+    });
+
+    Vue.component('blog-post', {
+        props: ['title'],
+        template: '<h5 style="margin: 0;padding: 0">我的姓名是：{{title}}</h5>',
+    });
+
+    Vue.component('blog-post2', {
+        props: ['post'],
+        template: `
+            <div class="blog-post2">
+                <h3>{{ post.title }}</h3>
+                <button v-on:click="$emit('enlarge-text',0.2)">Enlarge text</button>
+                <div v-html="post.content"></div>
+            </div>
+        `,
+    });
+    Vue.component('alert-box', {
+        template: `
+    <div class="demo-alert-box">
+      <strong>Error!</strong>
+      <slot></slot>
+    </div>
+  `
+    })
+    Vue.component("tab-home", {
+        template: "<div>Home component</div>"
+    });
+    Vue.component("tab-posts", {
+        data: function() {
+            return {
+                posts: [
+                    {
+                        id: 1,
+                        title: "Cat Ipsum",
+                        content:
+                            "<p>Dont wait for the storm to pass, dance in the rain kick up litter decide to want nothing to do with my owner today demand to be let outside at once, and expect owner to wait for me as i think about it cat cat moo moo lick ears lick paws so make meme, make cute face but lick the other cats. Kitty poochy chase imaginary bugs, but stand in front of the computer screen. Sweet beast cat dog hate mouse eat string barf pillow no baths hate everything stare at guinea pigs. My left donut is missing, as is my right loved it, hated it, loved it, hated it scoot butt on the rug cat not kitten around</p>"
+                    },
+                    {
+                        id: 2,
+                        title: "Hipster Ipsum",
+                        content:
+                            "<p>Bushwick blue bottle scenester helvetica ugh, meh four loko. Put a bird on it lumbersexual franzen shabby chic, street art knausgaard trust fund shaman scenester live-edge mixtape taxidermy viral yuccie succulents. Keytar poke bicycle rights, crucifix street art neutra air plant PBR&B hoodie plaid venmo. Tilde swag art party fanny pack vinyl letterpress venmo jean shorts offal mumblecore. Vice blog gentrify mlkshk tattooed occupy snackwave, hoodie craft beer next level migas 8-bit chartreuse. Trust fund food truck drinking vinegar gochujang.</p>"
+                    },
+                    {
+                        id: 3,
+                        title: "Cupcake Ipsum",
+                        content:
+                            "<p>Icing dessert soufflé lollipop chocolate bar sweet tart cake chupa chups. Soufflé marzipan jelly beans croissant toffee marzipan cupcake icing fruitcake. Muffin cake pudding soufflé wafer jelly bear claw sesame snaps marshmallow. Marzipan soufflé croissant lemon drops gingerbread sugar plum lemon drops apple pie gummies. Sweet roll donut oat cake toffee cake. Liquorice candy macaroon toffee cookie marzipan.</p>"
+                    }
+                ],
+                selectedPost: null
+            };
+        },
+        template: `
+  	<div class="posts-tab">
+      <ul class="posts-sidebar">
+        <li
+          v-for="post in posts"
+          v-bind:key="post.id"
+          v-bind:class="{ selected: post === selectedPost }"
+					v-on:click="selectedPost = post"
+        >
+          {{ post.title }}
+        </li>
+      </ul>
+      <div class="selected-post-container">
+      	<div
+        	v-if="selectedPost"
+          class="selected-post"
+        >
+          <h3>{{ selectedPost.title }}</h3>
+          <div v-html="selectedPost.content"></div>
+        </div>
+        <strong v-else>
+          Click on a blog title to the left to view it.
+        </strong>
+      </div>
+    </div>
+  `
+    });
+
+    Vue.component("tab-archive", {
+        template: "<div>Archive component</div>"
     });
 
     var app = new Vue({
@@ -194,6 +410,7 @@
             message: '123',
         }
     });
+
     var app2 = new Vue({
         el: '#app-2',
         data: {
@@ -201,14 +418,24 @@
             loginType: 'uname',
             formtext: '',
             formtextarea: '',
+            postFontSize: 1,
             isAct: true,
             formradio: '',
             vselect: '',
+            vlazy: '',
+            vtrim: '',
+            currentTab: "Home",
+            tabs: ["Home", "Posts", "Archive"],
             vmultiselect: [],
+            postsdata: [
+                {id: 1, title: 'My journey with Vue', content: 'content1'},
+                {id: 2, title: 'Blogging with Vue', content: 'content2'},
+                {id: 3, title: 'Why Vue is so fun', content: 'content3'}
+            ],
             selectoptions: [
-                { text: 'One', value: 'A' },
-                { text: 'Two', value: 'B' },
-                { text: 'Three', value: 'C' }
+                {text: 'One', value: 'A'},
+                {text: 'Two', value: 'B'},
+                {text: 'Three', value: 'C'}
             ],
             formCheckedNames: [],
             error: null,
@@ -248,6 +475,9 @@
             ],
         },
         computed: {
+            currentTabComponent: function () {
+                return "tab-" + this.currentTab.toLowerCase();
+            },
             /*class与style绑定*/
             classObj: function () {
                 return {
@@ -291,6 +521,9 @@
             }
         },
         methods: {
+            onEnlargeText: function (enlargeAmount) {
+                this.postFontSize += enlargeAmount;
+            },
             reverseMessage: function () {
                 this.rvsmsg = this.rvsmsg.split('').reverse().join('');
             },
